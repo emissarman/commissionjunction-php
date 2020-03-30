@@ -4,6 +4,9 @@ namespace CROSCON\CommissionJunction;
 class Client {
     public $domain = "https://%s.api.cj.com/%s/%s";
 
+    const FORMAT_ARRAY = 'array';
+    const FORMAT_OBJECT = 'object';
+    
     /**
      * Curl handle
      *
@@ -108,7 +111,7 @@ class Client {
      * @return array Commission Junction API response, converted to a PHP array
      * @throws Exception on cURL failure or http status code greater than or equal to 400
      */
-    public function api($subdomain, $resource, array $parameters = array(), $version = 'v2') {
+    public function api($subdomain, $resource, array $parameters = array(), $version = 'v2', $resultFormat = self::FORMAT_ARRAY) {
         $ch = $this->getCurl();
         $url = sprintf($this->domain, $subdomain, $version, $resource);
         
@@ -138,7 +141,12 @@ class Client {
         $body = preg_replace("/'/", "&#39;", $body);
         $body = preg_replace("/&#11/", "&amp;#11", $body);
         
-        return json_decode(json_encode((array)simplexml_load_string($body)), true);
+        if ($resultFormat == self::FORMAT_ARRAY) {
+            return json_decode(json_encode((array)simplexml_load_string($body)), true);
+        }
+        else {
+            return simplexml_load_string($body);
+        }
     }
 
     /**
